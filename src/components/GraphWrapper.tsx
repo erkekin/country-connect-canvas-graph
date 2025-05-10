@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const GraphWrapper: React.FC = () => {
   const [forceStrength, setForceStrength] = useState<number>(120);
-  const graphRef = useRef<{ resetView?: () => void }>(null);
+  const graphRef = useRef<{ resetView: () => void }>(null);
 
   const handleReset = () => {
     if (graphRef.current?.resetView) {

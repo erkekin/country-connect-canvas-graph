@@ -4,14 +4,19 @@ import * as d3 from 'd3';
 import { adjacencyList } from '../data/countriesData';
 import { toast } from 'sonner';
 
+// Extended interface to include d3 simulation properties
 interface CountryNode extends d3.SimulationNodeDatum {
   id: string;
   neighbors: string[];
+  x?: number;
+  y?: number;
+  fx?: number | null;
+  fy?: number | null;
 }
 
 interface CountryLink {
-  source: string;
-  target: string;
+  source: string | CountryNode;
+  target: string | CountryNode;
 }
 
 interface CountryGraphProps {
@@ -131,7 +136,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
         .attr("stroke", "#fff")
         .attr("stroke-width", 1.5);
 
-      // Add country labels
+      // Add country labels - now always visible
       const labels = node.append("text")
         .attr("dx", d => 8 + Math.min(d.neighbors.length / 2, 5))
         .attr("dy", 4)
@@ -142,7 +147,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
         })
         .style("fill", "#333")
         .style("pointer-events", "none")
-        .style("opacity", 0);  // Initially hidden
+        .style("opacity", 1); // Always visible
 
       // Node hover interaction
       node
@@ -152,11 +157,6 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
             .duration(200)
             .attr("r", 8 + Math.min(d.neighbors.length / 2, 5))
             .attr("fill", "#FF6B6B");
-
-          d3.select(this).select("text")
-            .transition()
-            .duration(100)
-            .style("opacity", 1);
 
           // Highlight connections
           link
@@ -186,11 +186,6 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
               return colorScale(Math.min(d.neighbors.length, 40));
             });
 
-          d3.select(this).select("text")
-            .transition()
-            .duration(100)
-            .style("opacity", 0);
-
           // Reset link styles
           link
             .transition()
@@ -213,10 +208,10 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
       // Set up the simulation tick
       simulation.on("tick", () => {
         link
-          .attr("x1", d => (d.source as unknown as CountryNode).x || 0)
-          .attr("y1", d => (d.source as unknown as CountryNode).y || 0)
-          .attr("x2", d => (d.target as unknown as CountryNode).x || 0)
-          .attr("y2", d => (d.target as unknown as CountryNode).y || 0);
+          .attr("x1", d => (d.source as CountryNode).x || 0)
+          .attr("y1", d => (d.source as CountryNode).y || 0)
+          .attr("x2", d => (d.target as CountryNode).x || 0)
+          .attr("y2", d => (d.target as CountryNode).y || 0);
 
         node.attr("transform", d => `translate(${d.x || 0},${d.y || 0})`);
       });
