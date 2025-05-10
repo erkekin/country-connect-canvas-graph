@@ -20,7 +20,7 @@ interface CountryLink {
 }
 
 interface CountryGraphProps {
-  forceStrength?: number;
+  // No props needed after removing forceStrength
 }
 
 const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
@@ -60,6 +60,18 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
 
       // Show loading toast
       const loadingToast = toast.loading("Building country network...");
+
+      // Check for dark mode
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      // Define color schemes based on theme
+      const nodeColors = isDarkMode 
+        ? ["#60A5FA", "#3B82F6", "#2563EB"] // Blue shades for dark mode
+        : ["#67B7D1", "#3E5C76", "#0A2463"]; // Original colors for light mode
+      
+      const textColor = isDarkMode ? "#E5E7EB" : "#333"; // Text color based on theme
+      const linkColor = isDarkMode ? "#4B5563" : "#999"; // Link color based on theme
+      const activeColor = isDarkMode ? "#F87171" : "#FF6B6B"; // Highlight color
 
       // Prepare data
       const countries = new Set<string>();
@@ -110,7 +122,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
 
       // Create links
       const link = g.append("g")
-        .attr("stroke", "#999")
+        .attr("stroke", linkColor)
         .attr("stroke-opacity", 0.4)
         .selectAll("line")
         .data(links)
@@ -131,12 +143,12 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
         .attr("fill", d => {
           const colorScale = d3.scaleLinear<string>()
             .domain([0, 20, 40])
-            .range(["#67B7D1", "#3E5C76", "#0A2463"])
+            .range(nodeColors)
             .interpolate(d3.interpolateHcl);
           
           return colorScale(Math.min(d.neighbors.length, 40));
         })
-        .attr("stroke", "#fff")
+        .attr("stroke", isDarkMode ? "#374151" : "#fff") // Border color based on theme
         .attr("stroke-width", 1.5);
 
       // Add country labels - now always visible
@@ -148,7 +160,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
           const size = 10 + Math.min(d.neighbors.length / 10, 2);
           return `${size}px`;
         })
-        .style("fill", "#333")
+        .style("fill", textColor)
         .style("pointer-events", "none")
         .style("opacity", 1); // Always visible
 
@@ -159,7 +171,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
             .transition()
             .duration(200)
             .attr("r", 8 + Math.min(d.neighbors.length / 2, 5))
-            .attr("fill", "#FF6B6B");
+            .attr("fill", activeColor);
 
           // Highlight connections
           link
@@ -169,7 +181,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
               return (l.source === d || l.target === d) ? 0.8 : 0.1;
             })
             .attr("stroke", l => {
-              return (l.source === d || l.target === d) ? "#FF6B6B" : "#999";
+              return (l.source === d || l.target === d) ? activeColor : linkColor;
             })
             .attr("stroke-width", l => {
               return (l.source === d || l.target === d) ? 2 : 0.8;
@@ -183,7 +195,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
             .attr("fill", d => {
               const colorScale = d3.scaleLinear<string>()
                 .domain([0, 20, 40])
-                .range(["#67B7D1", "#3E5C76", "#0A2463"])
+                .range(nodeColors)
                 .interpolate(d3.interpolateHcl);
               
               return colorScale(Math.min(d.neighbors.length, 40));
@@ -194,7 +206,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
             .transition()
             .duration(200)
             .attr("stroke-opacity", 0.4)
-            .attr("stroke", "#999")
+            .attr("stroke", linkColor)
             .attr("stroke-width", 0.8);
         })
         .on("click", (event, d) => {
@@ -260,12 +272,26 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
         toast.success(`Loaded ${countries.size} countries with ${links.length} borders`);
       }, 1500);
 
+      // Add theme change listener
+      const handleThemeChange = () => {
+        if (containerRef.current) {
+          // Redraw graph when theme changes
+          handleResize();
+        }
+      };
+
+      // Listen for theme changes
+      window.matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', handleThemeChange);
+
       return () => {
         simulation.stop();
         window.removeEventListener("resize", handleResize);
+        window.matchMedia('(prefers-color-scheme: dark)')
+          .removeEventListener('change', handleThemeChange);
         toast.dismiss(loadingToast);
       };
-    }, []);
+    }, []); // Rerun when theme changes
 
     // Drag function for the nodes
     const drag = (simulation: d3.Simulation<CountryNode, undefined>) => {

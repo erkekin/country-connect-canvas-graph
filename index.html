@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,6 +16,20 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <script>
+      // Initialize dark mode based on user preference
+      (function() {
+        const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const storedTheme = localStorage.getItem('ui-theme');
+        
+        if (storedTheme === 'dark' || (storedTheme === null && darkModeMediaQuery.matches)) {
+          document.documentElement.classList.add('dark');
+        } else if (storedTheme === 'light' || (storedTheme === null && !darkModeMediaQuery.matches)) {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
   </head>
 
   <body>
