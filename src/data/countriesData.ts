@@ -45,7 +45,6 @@ export const adjacencyList: [string, string][] = [
   ["Azerbaijan", "Georgia"],
   ["Azerbaijan", "Iran"],
   ["Azerbaijan", "Russia"],
-  ["Azerbaijan", "Turkey"],
   ["Bahrain", "Saudi Arabia (Causeway)"],
   ["Bangladesh", "India"],
   ["Bangladesh", "Myanmar"],
