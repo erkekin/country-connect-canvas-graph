@@ -1,18 +1,10 @@
 
 import React, { useRef } from 'react';
 import CountryGraph from './CountryGraph';
-import GraphControls from './GraphControls';
 import { toast } from 'sonner';
 
 const GraphWrapper: React.FC = () => {
   const graphRef = useRef<{ resetView: () => void }>(null);
-
-  const handleReset = () => {
-    if (graphRef.current?.resetView) {
-      graphRef.current.resetView();
-      toast.info("Graph view has been reset");
-    }
-  };
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50">
@@ -21,10 +13,6 @@ const GraphWrapper: React.FC = () => {
         <p className="text-center text-gray-500 text-sm">
           Explore countries and their shared borders - Drag to move, scroll to zoom
         </p>
-      </div>
-      
-      <div className="fixed bottom-4 left-4 right-4 z-10">
-        <GraphControls onReset={handleReset} />
       </div>
       
       <div className="flex-1 overflow-hidden">
