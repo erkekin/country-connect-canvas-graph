@@ -24,11 +24,14 @@ interface CountryGraphProps {
 }
 
 const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
-  ({ forceStrength = 120 }, ref) => {
+  (props, ref) => {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const simulationRef = useRef<d3.Simulation<CountryNode, undefined> | null>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+    // Fixed force strength value
+    const FORCE_STRENGTH = 120;
 
     // Expose resetView function to parent component
     useImperativeHandle(ref, () => ({
@@ -72,9 +75,9 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
 
       const nodes: CountryNode[] = Array.from(countries).map(id => ({
         id,
-        neighbors: links
-          .filter(link => link.source === id || link.target === id)
-          .map(link => link.source === id ? link.target : link.source)
+        neighbors: adjacencyList
+          .filter(entry => entry[0] === id || entry[1] === id)
+          .map(entry => entry[0] === id ? entry[1] : entry[0])
       }));
 
       // Sort nodes by number of connections (for coloring)
@@ -93,9 +96,9 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
       // Create group for zoom/pan
       const g = svg.append("g");
 
-      // Create simulation
+      // Create simulation with fixed force strength
       const simulation = d3.forceSimulation<CountryNode>(nodes)
-        .force("charge", d3.forceManyBody().strength(-forceStrength))
+        .force("charge", d3.forceManyBody().strength(-FORCE_STRENGTH))
         .force("center", d3.forceCenter(containerWidth / 2, containerHeight / 2))
         .force("link", d3.forceLink<CountryNode, CountryLink>(links)
           .id(d => d.id)
@@ -262,17 +265,7 @@ const CountryGraph = forwardRef<{ resetView: () => void }, CountryGraphProps>(
         window.removeEventListener("resize", handleResize);
         toast.dismiss(loadingToast);
       };
-    }, [forceStrength]);
-
-    // Update force strength when it changes
-    useEffect(() => {
-      if (simulationRef.current) {
-        simulationRef.current
-          .force("charge", d3.forceManyBody().strength(-forceStrength))
-          .alpha(0.3)
-          .restart();
-      }
-    }, [forceStrength]);
+    }, []);
 
     // Drag function for the nodes
     const drag = (simulation: d3.Simulation<CountryNode, undefined>) => {

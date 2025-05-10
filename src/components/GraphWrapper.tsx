@@ -1,11 +1,10 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import CountryGraph from './CountryGraph';
 import GraphControls from './GraphControls';
 import { toast } from 'sonner';
 
 const GraphWrapper: React.FC = () => {
-  const [forceStrength, setForceStrength] = useState<number>(120);
   const graphRef = useRef<{ resetView: () => void }>(null);
 
   const handleReset = () => {
@@ -13,10 +12,6 @@ const GraphWrapper: React.FC = () => {
       graphRef.current.resetView();
       toast.info("Graph view has been reset");
     }
-  };
-
-  const handleStrengthChange = (value: number) => {
-    setForceStrength(value);
   };
 
   return (
@@ -29,15 +24,11 @@ const GraphWrapper: React.FC = () => {
       </div>
       
       <div className="fixed bottom-4 left-4 right-4 z-10">
-        <GraphControls 
-          onReset={handleReset} 
-          onChangeStrength={handleStrengthChange}
-          strength={forceStrength}
-        />
+        <GraphControls onReset={handleReset} />
       </div>
       
       <div className="flex-1 overflow-hidden">
-        <CountryGraph ref={graphRef} forceStrength={forceStrength} />
+        <CountryGraph ref={graphRef} />
       </div>
     </div>
   );
